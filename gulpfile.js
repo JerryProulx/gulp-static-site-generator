@@ -112,6 +112,8 @@ function dev(cb){
   cb();
 }
 
+
+
 exports.default = series(dev, html, css, js, images, serve);
 
 exports.build = parallel(html, cssBuild, js, imagesWithCompression);
