@@ -8,6 +8,6 @@ Go in src/html, create a folder with the route you want to create and add an ind
 
 ## Command
 
-gulp : start dev server with hot-reload
+gulp : start dev server with hot-reload  
 gulp build: build your website with minification and images compression
 
