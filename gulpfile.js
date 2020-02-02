@@ -7,6 +7,8 @@ const concat = require('gulp-concat');
 const browserSync = require('browser-sync').create();
 const imagemin = require('gulp-imagemin');
 const babel = require('gulp-babel');
+const del = require('del');
+const browserify = require('gulp-browserify');
 
 const siteData = require('./src/config');
 
@@ -19,7 +21,20 @@ let settings = {
 let watcherHB;
 let watcherSCSS;
 let watcherJS;
+let watcherIMG;
 
+function clean(){
+  if(process.env.NODE_ENV == 'dev'){
+    return del([
+      '.serve/**/*',
+    ]);
+  }else{
+    return del([
+      'dist/**/*',
+    ]);
+  }
+
+}
 
 
 function serve(){
@@ -29,9 +44,10 @@ function serve(){
     }
   });
 
-  watcherHB.on('change', series(html,browserSync.reload));
+  watcherHB.on('change', series(html,images,browserSync.reload));
   watcherSCSS.on('change', series(css));
   watcherJS.on('change', series(js,browserSync.reload));
+  // watcherIMG.on('change', series(images,browserSync.reload));
 }
 
 
@@ -74,6 +90,7 @@ function js() {
     settings.sourceDir + '/js/*.js'
     ], { sourcemaps: true })
     .pipe(babel({presets: ['@babel/env']}))
+    .pipe(browserify())
     .pipe(concat('script.min.js'))
     .pipe(dest(settings.outputDir + '/js', { sourcemaps: true }))
 }
@@ -108,12 +125,13 @@ function dev(cb){
   watcherHB = watch(['src/**/*.handlebars']);
   watcherSCSS = watch(['src/scss/**/*.scss']);
   watcherJS = watch(['src/js/**/*.js']);
+  watcherIMG = watch(['src/images/*']);
   
   cb();
 }
 
 
 
-exports.default = series(dev, html, css, js, images, serve);
+exports.default = series(dev, clean, html, css, js, images, serve);
 
-exports.build = parallel(html, cssBuild, js, imagesWithCompression);
+exports.build = parallel(html, clean, cssBuild, js, imagesWithCompression);

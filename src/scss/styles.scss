@@ -1,3 +1,20 @@
+@import '../../node_modules/bulma/css/bulma';
+
 body {
-    background: blue;
+    background: pink;
+}
+
+
+// UNCOMMENT FOR CSS TRANSITIONS 
+
+.transition-fade {
+    opacity: 1;
+    transition: 0.4s;
+}
+
+html.is-animating .transition-fade {
+    opacity: 0;
+}
+html.is-leaving .transition-fade {
+    opacity: 0;
 }
