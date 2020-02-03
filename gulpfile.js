@@ -9,14 +9,25 @@ const imagemin = require('gulp-imagemin');
 const babel = require('gulp-babel');
 const del = require('del');
 const browserify = require('gulp-browserify');
+const replace = require('gulp-replace');
+const uglify = require('gulp-uglify');
+const autoprefixer = require('autoprefixer')
+const sourcemaps = require('gulp-sourcemaps')
+const postcss = require('gulp-postcss')
 
 const siteData = require('./src/config');
 
 
 let settings = {
   sourceDir: 'src',
-  outputDir: 'dist'
+  outputDir: 'dist',
+  styleSheetName: 'styles',
+  scriptName: 'script',
+  timeStamp: new Date().getTime()
 }
+
+settings.styleSheetName = `${settings.styleSheetName}${settings.timeStamp}.css`;
+settings.scriptName = `${settings.scriptName}${settings.timeStamp}.js`;
 
 let watcherHB;
 let watcherSCSS;
@@ -70,6 +81,28 @@ function html() {
   .pipe(dest(settings.outputDir));
 }
 
+function htmlPROD() {
+
+  options = {
+    batch : ['./src/partials'],
+    // helpers : {
+    //     capitals : function(str){
+    //         return str.toUpperCase();
+    //     }
+    // }
+}
+
+  return src(settings.sourceDir + '/html/**/*.handlebars')
+  .pipe(handlebars(siteData.default.data, options))
+  .pipe(replace('styles.css', settings.styleSheetName))
+  .pipe(replace('script.js', settings.scriptName))
+  .pipe(rename(function(path) {
+      path.extname = '.html';
+  }))
+  .pipe(dest(settings.outputDir));
+}
+
+
 function css() {
   return src(settings.sourceDir + '/scss/*.scss')
     .pipe(sass().on('error', sass.logError))
@@ -78,12 +111,17 @@ function css() {
     .pipe(browserSync.stream());
 }
 
-function cssBuild() {
+function cssPROD() {
   return src(settings.sourceDir + '/scss/*.scss')
     .pipe(sass().on('error', sass.logError))
+    .pipe(sourcemaps.init())
+    .pipe(postcss([ autoprefixer() ]))
+    .pipe(sourcemaps.write('.'))
     .pipe(minifyCSS())
+    .pipe(rename(settings.styleSheetName))
     .pipe(dest(settings.outputDir + '/css'))
 }
+
 
 function js() {
   return src([
@@ -91,7 +129,18 @@ function js() {
     ], { sourcemaps: true })
     .pipe(babel({presets: ['@babel/env']}))
     .pipe(browserify())
-    .pipe(concat('script.min.js'))
+    .pipe(concat('script.js'))
+    .pipe(dest(settings.outputDir + '/js', { sourcemaps: true }))
+}
+
+function jsPROD() {
+  return src([
+    settings.sourceDir + '/js/*.js'
+    ], { sourcemaps: true })
+    .pipe(babel({presets: ['@babel/env']}))
+    .pipe(browserify())
+    .pipe(uglify())
+    .pipe(concat(settings.scriptName))
     .pipe(dest(settings.outputDir + '/js', { sourcemaps: true }))
 }
 
@@ -130,8 +179,5 @@ function dev(cb){
   cb();
 }
 
-
-
 exports.default = series(dev, clean, html, css, js, images, serve);
-
-exports.build = parallel(html, clean, cssBuild, js, imagesWithCompression);
+exports.build = parallel(clean, htmlPROD, cssPROD, jsPROD, imagesWithCompression);
