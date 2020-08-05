@@ -106,6 +106,7 @@ function htmlPROD() {
 function css() {
   return src(settings.sourceDir + '/scss/*.scss')
     .pipe(sass().on('error', sass.logError))
+    .pipe(postcss([ autoprefixer() ]))
     .pipe(minifyCSS())
     .pipe(dest(settings.outputDir + '/css'))
     .pipe(browserSync.stream());
