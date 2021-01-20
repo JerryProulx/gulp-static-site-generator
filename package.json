@@ -36,7 +36,7 @@
   "dependencies": {
     "@swup/js-plugin": "^1.0.4",
     "bulma": "^0.8.0",
-    "gsap": "^3.1.1",
+    "gsap": "^3.6.0",
     "swup": "^2.0.8"
   }
 }
